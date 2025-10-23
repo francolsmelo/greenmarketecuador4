@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h2>Productos Automotrices Ecológicos</h2>
+            <p>Soluciones sostenibles para tu vehículo y el medio ambiente</p>
+            <a href="#productos" class="btn btn-primary">Ver Productos</a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-leaf"></i>
+                <h3>Ecológicos</h3>
+                <p>Productos amigables con el medio ambiente</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-certificate"></i>
+                <h3>Certificados</h3>
+                <p>Calidad garantizada y certificada</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-shipping-fast"></i>
+                <h3>Entrega Rápida</h3>
+                <p>Envíos a todo Ecuador</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-headset"></i>
+                <h3>Soporte</h3>
+                <p>Asesoría personalizada</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="products-section" id="productos">
+    <div class="container">
+        <h2 class="section-title">Nuestros Productos</h2>
+        {% if products %}
+            <div class="products-grid">
+                {% for product in products %}
+                    <div class="product-card">
+                        {% if product.image_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="product-no-image">
+                                <i class="fas fa-image"></i>
+                                <p>Sin imagen</p>
+                            </div>
+                        {% endif %}
+                        <div class="product-info">
+                            <h3>{{ product.name }}</h3>
+                            <p class="product-description">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                            <div class="product-footer">
+                                <span class="price">${{ "%.2f"|format(product.price) }}</span>
+                                {% if product.stock > 0 %}
+                                    <span class="stock in-stock"><i class="fas fa-check-circle"></i> Disponible ({{ product.stock }})</span>
+                                {% else %}
+                                    <span class="stock out-of-stock"><i class="fas fa-times-circle"></i> Agotado</span>
+                                {% endif %}
+                            </div>
+                            <div class="product-card-actions">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-secondary">Ver Detalles</a>
+                                {% if product.stock > 0 %}
+                                    <a href="{{ url_for('checkout', product_id=product.id) }}" class="btn btn-primary">Comprar</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <p>Próximamente tendremos productos disponibles</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>¿Listo para hacer tu compra?</h2>
+            <p>Contáctanos para más información sobre nuestros productos ecológicos</p>
+            <a href="{{ url_for('contact') }}" class="btn btn-primary"><i class="fas fa-phone"></i> Contáctanos</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

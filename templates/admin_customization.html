@@ -1,0 +1,120 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Personalización - Panel Admin{% endblock %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1><i class="fas fa-palette"></i> Personalización del Sitio</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="form-container">
+    <form method="POST" class="customization-form">
+        <div class="customization-preview">
+            <h3><i class="fas fa-eye"></i> Vista Previa de Colores</h3>
+            <p>Personaliza los colores principales del sitio web</p>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="primary_color"><i class="fas fa-fill-drip"></i> Color Primario</label>
+                <div class="color-input-group">
+                    <input type="color" id="primary_color" name="primary_color" value="{{ configs.primary_color or '#2d7a3e' }}">
+                    <input type="text" value="{{ configs.primary_color or '#2d7a3e' }}" readonly class="color-code">
+                </div>
+                <small>Color principal del sitio (encabezados, botones principales)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="secondary_color"><i class="fas fa-fill-drip"></i> Color Secundario</label>
+                <div class="color-input-group">
+                    <input type="color" id="secondary_color" name="secondary_color" value="{{ configs.secondary_color or '#4caf50' }}">
+                    <input type="text" value="{{ configs.secondary_color or '#4caf50' }}" readonly class="color-code">
+                </div>
+                <small>Color de acento (hover, iconos destacados)</small>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="light_color"><i class="fas fa-fill-drip"></i> Color Claro</label>
+                <div class="color-input-group">
+                    <input type="color" id="light_color" name="light_color" value="{{ configs.light_color or '#81c784' }}">
+                    <input type="text" value="{{ configs.light_color or '#81c784' }}" readonly class="color-code">
+                </div>
+                <small>Tonalidad clara para fondos y elementos suaves</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="bg_color"><i class="fas fa-fill-drip"></i> Color de Fondo</label>
+                <div class="color-input-group">
+                    <input type="color" id="bg_color" name="bg_color" value="{{ configs.bg_color or '#f1f8f4' }}">
+                    <input type="text" value="{{ configs.bg_color or '#f1f8f4' }}" readonly class="color-code">
+                </div>
+                <small>Color de fondo general del sitio</small>
+            </div>
+        </div>
+
+        <div class="color-preview-boxes">
+            <div class="preview-box" id="preview-primary" style="background: {{ configs.primary_color or '#2d7a3e' }};">
+                <span>Primario</span>
+            </div>
+            <div class="preview-box" id="preview-secondary" style="background: {{ configs.secondary_color or '#4caf50' }};">
+                <span>Secundario</span>
+            </div>
+            <div class="preview-box" id="preview-light" style="background: {{ configs.light_color or '#81c784' }};">
+                <span>Claro</span>
+            </div>
+            <div class="preview-box" id="preview-bg" style="background: {{ configs.bg_color or '#f1f8f4' }}; color: #333;">
+                <span>Fondo</span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+            <button type="button" class="btn btn-secondary btn-large" onclick="resetToDefaults()">
+                <i class="fas fa-undo"></i> Restablecer Predeterminados
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.querySelectorAll('input[type="color"]').forEach(input => {
+    input.addEventListener('input', function() {
+        this.nextElementSibling.value = this.value;
+        updatePreview(this.id, this.value);
+    });
+});
+
+function updatePreview(id, color) {
+    const previewMap = {
+        'primary_color': 'preview-primary',
+        'secondary_color': 'preview-secondary',
+        'light_color': 'preview-light',
+        'bg_color': 'preview-bg'
+    };
+    
+    const previewElement = document.getElementById(previewMap[id]);
+    if (previewElement) {
+        previewElement.style.background = color;
+    }
+}
+
+function resetToDefaults() {
+    document.getElementById('primary_color').value = '#2d7a3e';
+    document.getElementById('secondary_color').value = '#4caf50';
+    document.getElementById('light_color').value = '#81c784';
+    document.getElementById('bg_color').value = '#f1f8f4';
+    
+    document.querySelectorAll('input[type="color"]').forEach(input => {
+        input.nextElementSibling.value = input.value;
+        updatePreview(input.id, input.value);
+    });
+}
+</script>
+{% endblock %}

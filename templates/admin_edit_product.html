@@ -1,0 +1,83 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Editar Producto - Panel Admin{% endblock %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1><i class="fas fa-edit"></i> Editar Producto</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="form-container">
+    <form method="POST" enctype="multipart/form-data" class="product-form">
+        <div class="form-group">
+            <label for="name"><i class="fas fa-tag"></i> Nombre del Producto *</label>
+            <input type="text" id="name" name="name" value="{{ product.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="description"><i class="fas fa-align-left"></i> Descripción *</label>
+            <textarea id="description" name="description" rows="5" required>{{ product.description }}</textarea>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="price"><i class="fas fa-dollar-sign"></i> Precio (USD) *</label>
+                <input type="number" id="price" name="price" step="0.01" min="0" value="{{ product.price }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="stock"><i class="fas fa-boxes"></i> Stock/Cantidad *</label>
+                <input type="number" id="stock" name="stock" min="0" value="{{ product.stock }}" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="image"><i class="fas fa-image"></i> Cambiar Imagen del Producto</label>
+            {% if product.image_filename %}
+                <div class="current-image">
+                    <p>Imagen actual:</p>
+                    <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
+                </div>
+            {% endif %}
+            <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
+            <small>Formatos permitidos: JPG, PNG, GIF, WEBP (máx. 16MB). Dejar vacío para mantener la imagen actual.</small>
+        </div>
+        
+        <div id="imagePreview" class="image-preview" style="display:none;">
+            <p>Nueva imagen:</p>
+            <img id="preview" src="" alt="Vista previa">
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-save"></i> Actualizar Producto
+            </button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-large">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+function previewImage(event) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('preview');
+    const file = event.target.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

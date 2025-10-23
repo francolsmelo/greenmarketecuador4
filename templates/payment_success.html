@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Pago Exitoso - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="payment-result">
+    <div class="container">
+        <div class="success-card">
+            <i class="fas fa-check-circle"></i>
+            <h1>¡Pago Exitoso!</h1>
+            <p>Tu compra ha sido procesada correctamente.</p>
+            <p class="order-info">Pronto recibirás un correo con los detalles de tu pedido.</p>
+            <div class="result-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Volver a la Tienda
+                </a>
+                <a href="{{ url_for('contact') }}" class="btn btn-secondary">
+                    <i class="fas fa-phone"></i> Contactar Soporte
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
