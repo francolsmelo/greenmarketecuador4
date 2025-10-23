@@ -20,13 +20,12 @@
                         <li><a href="{{ url_for('index') }}">Inicio</a></li>
                         <li><a href="{{ url_for('index') }}#productos">Productos</a></li>
                         <li><a href="{{ url_for('contact') }}">Contacto</a></li>
-                        {% if session.user_id %}
-                            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Mi Perfil</a></li>
-                            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
-                        {% else %}
-                            <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a></li>
-                            <li><a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Registrarse</a></li>
-                        {% endif %}
+                        <li><a href="{{ url_for('view_cart') }}" class="cart-link">
+                            <i class="fas fa-shopping-cart"></i> Carrito 
+                            {% if cart_count and cart_count > 0 %}
+                            <span class="cart-badge">{{ cart_count }}</span>
+                            {% endif %}
+                        </a></li>
                     </ul>
                 </nav>
                 <div class="social-links">

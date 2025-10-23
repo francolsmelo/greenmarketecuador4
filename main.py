@@ -90,7 +90,7 @@ def get_cart_count():
 @app.route('/')
 def index():
     products = Product.query.all()
-    return render_template('index.html', products=products)
+    return render_template('index.html', products=products, cart_count=get_cart_count())
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
@@ -194,6 +194,10 @@ def clear_cart():
 def contact():
     if request.method == 'POST':
         try:
+            if not os.environ.get('MAIL_USERNAME') or not os.environ.get('MAIL_PASSWORD'):
+                flash('La configuración de email no está completa. Por favor contacta al administrador directamente por teléfono.', 'error')
+                return render_template('contact.html', cart_count=get_cart_count())
+            
             name = request.form.get('name', '').strip()
             email = request.form.get('email', '').strip()
             phone = request.form.get('phone', '').strip()
@@ -202,7 +206,7 @@ def contact():
             
             if not name or not email or not subject or not message_text:
                 flash('Por favor completa todos los campos obligatorios', 'error')
-                return render_template('contact.html')
+                return render_template('contact.html', cart_count=get_cart_count())
             
             msg = Message(
                 subject=f"[GreenMarket] {subject}",
@@ -249,9 +253,9 @@ Este mensaje fue enviado desde el formulario de contacto de GreenMarket Ecuador.
             
         except Exception as e:
             flash(f'Error al enviar el mensaje: {str(e)}. Por favor intenta contactarnos directamente por teléfono o email.', 'error')
-            return render_template('contact.html')
+            return render_template('contact.html', cart_count=get_cart_count())
     
-    return render_template('contact.html')
+    return render_template('contact.html', cart_count=get_cart_count())
 
 @app.route('/checkout')
 def checkout():
