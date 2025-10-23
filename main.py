@@ -5,7 +5,7 @@ load_dotenv()
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Product, AdminUser, SiteConfig, User, Order, PaymentMethod
+from models import db, Product, AdminUser, SiteConfig, User, Order, OrderItem, PaymentMethod
 from functools import wraps
 from PIL import Image
 import stripe
@@ -71,6 +71,22 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def get_cart():
+    if 'cart' not in session:
+        session['cart'] = {}
+    return session['cart']
+
+def get_cart_total():
+    cart = get_cart()
+    total = 0
+    for product_id, item in cart.items():
+        total += item['price'] * item['quantity']
+    return total
+
+def get_cart_count():
+    cart = get_cart()
+    return sum(item['quantity'] for item in cart.values())
+
 @app.route('/')
 def index():
     products = Product.query.all()
@@ -79,7 +95,100 @@ def index():
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
-    return render_template('product_detail.html', product=product)
+    cart_count = get_cart_count()
+    return render_template('product_detail.html', product=product, cart_count=cart_count)
+
+@app.route('/cart/add/<int:product_id>', methods=['POST'])
+def add_to_cart(product_id):
+    product = Product.query.get_or_404(product_id)
+    quantity = int(request.form.get('quantity', 1))
+    
+    if product.stock < quantity:
+        flash(f'Solo hay {product.stock} unidades disponibles', 'error')
+        return redirect(url_for('product_detail', product_id=product_id))
+    
+    cart = get_cart()
+    product_id_str = str(product_id)
+    
+    if product_id_str in cart:
+        new_quantity = cart[product_id_str]['quantity'] + quantity
+        if new_quantity > product.stock:
+            flash(f'Solo hay {product.stock} unidades disponibles', 'error')
+            return redirect(url_for('product_detail', product_id=product_id))
+        cart[product_id_str]['quantity'] = new_quantity
+    else:
+        cart[product_id_str] = {
+            'name': product.name,
+            'price': product.price,
+            'quantity': quantity,
+            'image': product.image_filename
+        }
+    
+    session['cart'] = cart
+    flash(f'{product.name} agregado al carrito', 'success')
+    return redirect(url_for('view_cart'))
+
+@app.route('/cart')
+def view_cart():
+    cart = get_cart()
+    cart_items = []
+    total = 0
+    
+    for product_id, item in cart.items():
+        product = Product.query.get(int(product_id))
+        if product:
+            item_total = item['price'] * item['quantity']
+            cart_items.append({
+                'product_id': product_id,
+                'product': product,
+                'quantity': item['quantity'],
+                'price': item['price'],
+                'subtotal': item_total
+            })
+            total += item_total
+    
+    return render_template('cart.html', cart_items=cart_items, total=total, cart_count=get_cart_count())
+
+@app.route('/cart/update/<int:product_id>', methods=['POST'])
+def update_cart(product_id):
+    quantity = int(request.form.get('quantity', 1))
+    product = Product.query.get_or_404(product_id)
+    
+    if quantity > product.stock:
+        flash(f'Solo hay {product.stock} unidades disponibles', 'error')
+        return redirect(url_for('view_cart'))
+    
+    cart = get_cart()
+    product_id_str = str(product_id)
+    
+    if quantity > 0:
+        if product_id_str in cart:
+            cart[product_id_str]['quantity'] = quantity
+    else:
+        if product_id_str in cart:
+            del cart[product_id_str]
+    
+    session['cart'] = cart
+    flash('Carrito actualizado', 'success')
+    return redirect(url_for('view_cart'))
+
+@app.route('/cart/remove/<int:product_id>', methods=['POST'])
+def remove_from_cart(product_id):
+    cart = get_cart()
+    product_id_str = str(product_id)
+    
+    if product_id_str in cart:
+        del cart[product_id_str]
+        session['cart'] = cart
+        flash('Producto eliminado del carrito', 'success')
+    
+    return redirect(url_for('view_cart'))
+
+@app.route('/cart/clear', methods=['POST'])
+def clear_cart():
+    session['cart'] = {}
+    flash('Carrito vaciado', 'success')
+    return redirect(url_for('index'))
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
@@ -144,38 +253,73 @@ Este mensaje fue enviado desde el formulario de contacto de GreenMarket Ecuador.
     
     return render_template('contact.html')
 
-@app.route('/checkout/<int:product_id>')
-def checkout(product_id):
-    product = Product.query.get_or_404(product_id)
-    if product.stock <= 0:
-        flash('Este producto está agotado', 'error')
-        return redirect(url_for('product_detail', product_id=product_id))
-    return render_template('checkout.html', product=product)
+@app.route('/checkout')
+def checkout():
+    cart = get_cart()
+    if not cart:
+        flash('Tu carrito está vacío', 'error')
+        return redirect(url_for('index'))
+    
+    cart_items = []
+    total = 0
+    
+    for product_id, item in cart.items():
+        product = Product.query.get(int(product_id))
+        if product:
+            if product.stock < item['quantity']:
+                flash(f'{product.name}: Solo hay {product.stock} unidades disponibles', 'error')
+                return redirect(url_for('view_cart'))
+            
+            item_total = item['price'] * item['quantity']
+            cart_items.append({
+                'product_id': product_id,
+                'product': product,
+                'quantity': item['quantity'],
+                'price': item['price'],
+                'subtotal': item_total
+            })
+            total += item_total
+    
+    payment_methods = PaymentMethod.query.filter_by(enabled=True).order_by(PaymentMethod.display_order).all()
+    return render_template('checkout.html', cart_items=cart_items, total=total, payment_methods=payment_methods, cart_count=get_cart_count())
 
-@app.route('/create-stripe-checkout/<int:product_id>', methods=['POST'])
-def create_stripe_checkout(product_id):
+@app.route('/create-stripe-checkout', methods=['POST'])
+def create_stripe_checkout():
     try:
-        product = Product.query.get_or_404(product_id)
+        if not stripe.api_key or not stripe.api_key.startswith('sk_'):
+            flash('La configuración de Stripe no está completa. Por favor contacta al administrador.', 'error')
+            return redirect(url_for('checkout'))
         
-        if product.stock <= 0:
-            flash('Este producto está agotado', 'error')
-            return redirect(url_for('product_detail', product_id=product_id))
+        cart = get_cart()
+        if not cart:
+            flash('Tu carrito está vacío', 'error')
+            return redirect(url_for('index'))
+        
+        line_items = []
+        for product_id, item in cart.items():
+            product = Product.query.get(int(product_id))
+            if product and product.stock >= item['quantity']:
+                line_items.append({
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': product.name,
+                            'description': product.description[:500] if product.description else '',
+                        },
+                        'unit_amount': int(item['price'] * 100),
+                    },
+                    'quantity': item['quantity'],
+                })
+        
+        if not line_items:
+            flash('No hay productos disponibles en tu carrito', 'error')
+            return redirect(url_for('view_cart'))
         
         domain_url = request.host_url.rstrip('/')
         
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': product.name,
-                        'description': product.description[:500],
-                    },
-                    'unit_amount': int(product.price * 100),
-                },
-                'quantity': 1,
-            }],
+            line_items=line_items,
             mode='payment',
             success_url=domain_url + url_for('payment_success'),
             cancel_url=domain_url + url_for('payment_cancel'),
@@ -183,17 +327,40 @@ def create_stripe_checkout(product_id):
         
         return redirect(checkout_session.url, code=303)
     except Exception as e:
-        flash(f'Error al procesar el pago: {str(e)}', 'error')
-        return redirect(url_for('checkout', product_id=product_id))
+        flash(f'Error al procesar el pago con Stripe: {str(e)}', 'error')
+        return redirect(url_for('checkout'))
 
-@app.route('/create-paypal-order/<int:product_id>', methods=['POST'])
-def create_paypal_order(product_id):
+@app.route('/create-paypal-order', methods=['POST'])
+def create_paypal_order():
     try:
-        product = Product.query.get_or_404(product_id)
+        if not os.environ.get('PAYPAL_CLIENT_ID') or not os.environ.get('PAYPAL_CLIENT_SECRET'):
+            flash('La configuración de PayPal no está completa. Por favor contacta al administrador.', 'error')
+            return redirect(url_for('checkout'))
         
-        if product.stock <= 0:
-            flash('Este producto está agotado', 'error')
-            return redirect(url_for('product_detail', product_id=product_id))
+        cart = get_cart()
+        if not cart:
+            flash('Tu carrito está vacío', 'error')
+            return redirect(url_for('index'))
+        
+        items = []
+        total = 0
+        
+        for product_id, item in cart.items():
+            product = Product.query.get(int(product_id))
+            if product and product.stock >= item['quantity']:
+                item_total = item['price'] * item['quantity']
+                items.append({
+                    "name": product.name,
+                    "sku": str(product.id),
+                    "price": f"{item['price']:.2f}",
+                    "currency": "USD",
+                    "quantity": item['quantity']
+                })
+                total += item_total
+        
+        if not items:
+            flash('No hay productos disponibles en tu carrito', 'error')
+            return redirect(url_for('view_cart'))
         
         domain_url = request.host_url.rstrip('/')
         
@@ -203,24 +370,18 @@ def create_paypal_order(product_id):
                 "payment_method": "paypal"
             },
             "redirect_urls": {
-                "return_url": domain_url + url_for('execute_paypal_payment', product_id=product.id),
+                "return_url": domain_url + url_for('execute_paypal_payment'),
                 "cancel_url": domain_url + url_for('payment_cancel')
             },
             "transactions": [{
                 "item_list": {
-                    "items": [{
-                        "name": product.name,
-                        "sku": str(product.id),
-                        "price": f"{product.price:.2f}",
-                        "currency": "USD",
-                        "quantity": 1
-                    }]
+                    "items": items
                 },
                 "amount": {
-                    "total": f"{product.price:.2f}",
+                    "total": f"{total:.2f}",
                     "currency": "USD"
                 },
-                "description": product.description[:127]
+                "description": "Compra en GreenMarket Ecuador"
             }]
         })
         
@@ -230,14 +391,14 @@ def create_paypal_order(product_id):
                     return redirect(str(link.href))
         else:
             flash(f'Error al crear el pago de PayPal: {payment.error}', 'error')
-            return redirect(url_for('checkout', product_id=product_id))
+            return redirect(url_for('checkout'))
             
     except Exception as e:
-        flash(f'Error: {str(e)}', 'error')
-        return redirect(url_for('checkout', product_id=product_id))
+        flash(f'Error al procesar el pago con PayPal: {str(e)}', 'error')
+        return redirect(url_for('checkout'))
 
-@app.route('/execute-paypal-payment/<int:product_id>')
-def execute_paypal_payment(product_id):
+@app.route('/execute-paypal-payment')
+def execute_paypal_payment():
     payment_id = request.args.get('paymentId')
     payer_id = request.args.get('PayerID')
     
@@ -245,10 +406,14 @@ def execute_paypal_payment(product_id):
         payment = paypalrestsdk.Payment.find(payment_id)
         
         if payment.execute({"payer_id": payer_id}):
-            product = Product.query.get_or_404(product_id)
-            if product.stock > 0:
-                product.stock -= 1
-                db.session.commit()
+            cart = get_cart()
+            for product_id, item in cart.items():
+                product = Product.query.get(int(product_id))
+                if product and product.stock >= item['quantity']:
+                    product.stock -= item['quantity']
+            
+            db.session.commit()
+            session['cart'] = {}
             flash('¡Pago completado exitosamente con PayPal!', 'success')
             return redirect(url_for('payment_success'))
         else:
@@ -517,133 +682,43 @@ def admin_payments():
     payments = PaymentMethod.query.order_by(PaymentMethod.display_order).all()
     return render_template('admin_payments.html', payments=payments)
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+@app.route('/admin/change-password', methods=['GET', 'POST'])
+@login_required
+def admin_change_password():
     if request.method == 'POST':
         try:
-            email = request.form.get('email', '').strip().lower()
-            username = request.form.get('username', '').strip()
-            password = request.form.get('password', '')
+            current_password = request.form.get('current_password', '')
+            new_password = request.form.get('new_password', '')
             confirm_password = request.form.get('confirm_password', '')
-            full_name = request.form.get('full_name', '').strip()
-            phone = request.form.get('phone', '').strip()
             
-            if not email or not username or not password:
-                flash('Email, usuario y contraseña son obligatorios', 'error')
-                return render_template('register.html')
+            admin = AdminUser.query.get(session['admin_id'])
             
-            if password != confirm_password:
-                flash('Las contraseñas no coinciden', 'error')
-                return render_template('register.html')
+            if not admin:
+                flash('Error: Usuario administrador no encontrado', 'error')
+                return redirect(url_for('admin_dashboard'))
             
-            if len(password) < 6:
+            if not check_password_hash(admin.password, current_password):
+                flash('Contraseña actual incorrecta', 'error')
+                return render_template('admin_change_password.html')
+            
+            if new_password != confirm_password:
+                flash('Las contraseñas nuevas no coinciden', 'error')
+                return render_template('admin_change_password.html')
+            
+            if len(new_password) < 6:
                 flash('La contraseña debe tener al menos 6 caracteres', 'error')
-                return render_template('register.html')
+                return render_template('admin_change_password.html')
             
-            if User.query.filter_by(email=email).first():
-                flash('El email ya está registrado', 'error')
-                return render_template('register.html')
-            
-            if User.query.filter_by(username=username).first():
-                flash('El nombre de usuario ya está en uso', 'error')
-                return render_template('register.html')
-            
-            user = User()
-            user.email = email
-            user.username = username
-            user.password = generate_password_hash(password)
-            user.full_name = full_name
-            user.phone = phone
-            
-            db.session.add(user)
+            admin.password = generate_password_hash(new_password)
             db.session.commit()
-            
-            flash('¡Registro exitoso! Ya puedes iniciar sesión', 'success')
-            return redirect(url_for('login'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al registrar: {str(e)}', 'error')
-            return render_template('register.html')
-    
-    return render_template('register.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username_or_email = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
-        
-        if not username_or_email or not password:
-            flash('Por favor ingresa usuario/email y contraseña', 'error')
-            return render_template('login.html')
-        
-        user = User.query.filter(
-            (User.username == username_or_email) | (User.email == username_or_email.lower())
-        ).first()
-        
-        if user and check_password_hash(user.password, password):
-            session['user_logged_in'] = True
-            session['user_id'] = user.id
-            session['username'] = user.username
-            flash(f'¡Bienvenido {user.full_name or user.username}!', 'success')
-            return redirect(url_for('index'))
-        else:
-            flash('Credenciales incorrectas', 'error')
-    
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('user_logged_in', None)
-    session.pop('user_id', None)
-    session.pop('username', None)
-    flash('Sesión cerrada correctamente', 'success')
-    return redirect(url_for('index'))
-
-@app.route('/profile', methods=['GET', 'POST'])
-def profile():
-    if 'user_logged_in' not in session:
-        flash('Debes iniciar sesión para ver tu perfil', 'error')
-        return redirect(url_for('login'))
-    
-    user = User.query.get_or_404(session['user_id'])
-    
-    if request.method == 'POST':
-        try:
-            action = request.form.get('action')
-            
-            if action == 'update_profile':
-                user.full_name = request.form.get('full_name', '').strip()
-                user.phone = request.form.get('phone', '').strip()
-                user.address = request.form.get('address', '').strip()
-                db.session.commit()
-                flash('Perfil actualizado exitosamente', 'success')
-            
-            elif action == 'change_password':
-                current_password = request.form.get('current_password', '')
-                new_password = request.form.get('new_password', '')
-                confirm_password = request.form.get('confirm_password', '')
-                
-                if not check_password_hash(user.password, current_password):
-                    flash('Contraseña actual incorrecta', 'error')
-                elif new_password != confirm_password:
-                    flash('Las contraseñas nuevas no coinciden', 'error')
-                elif len(new_password) < 6:
-                    flash('La contraseña debe tener al menos 6 caracteres', 'error')
-                else:
-                    user.password = generate_password_hash(new_password)
-                    db.session.commit()
-                    flash('Contraseña actualizada exitosamente', 'success')
-            
-            return redirect(url_for('profile'))
+            flash('Contraseña actualizada exitosamente', 'success')
+            return redirect(url_for('admin_dashboard'))
             
         except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}', 'error')
+            flash(f'Error al cambiar la contraseña: {str(e)}', 'error')
     
-    orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
-    return render_template('profile.html', user=user, orders=orders)
+    return render_template('admin_change_password.html')
 
 def init_defaults():
     with app.app_context():
