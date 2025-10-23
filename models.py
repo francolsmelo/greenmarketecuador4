@@ -64,18 +64,32 @@ class Order(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)
     payment_id = db.Column(db.String(200))
-    amount = db.Column(db.Float, nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(50), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship('User', backref='orders')
-    product = db.relationship('Product', backref='orders')
     
     def __repr__(self):
         return f'<Order {self.id}>'
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    unit_price = db.Column(db.Float, nullable=False)
+    subtotal = db.Column(db.Float, nullable=False)
+    
+    order = db.relationship('Order', backref='items')
+    product = db.relationship('Product', backref='order_items')
+    
+    def __repr__(self):
+        return f'<OrderItem {self.id}>'
 
 class PaymentMethod(db.Model):
     __tablename__ = 'payment_methods'
