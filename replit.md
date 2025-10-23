@@ -321,9 +321,36 @@ MAIL_DEFAULT_SENDER=noreply@greenmarket.com (opcional)
 ---
 
 **Fecha de Creación:** Octubre 2025  
-**Última Actualización:** 21 de Octubre 2025  
-**Versión:** 2.0.0 (Fase 2 Completa)  
-**Estado:** Producción Lista
+**Última Actualización:** 23 de Octubre 2025  
+**Versión:** 2.0.1 (Importado a Replit)  
+**Estado:** Desarrollo - Configurado para Replit
+
+## Configuración en Replit (Importación Completada) ✅
+
+### Entorno de Desarrollo
+- ✅ Python 3.11.13 instalado
+- ✅ Todas las dependencias instaladas vía pip
+- ✅ Base de datos PostgreSQL (Neon) conectada
+- ✅ Variables de entorno configuradas (DATABASE_URL, SESSION_SECRET)
+- ✅ Workflow configurado para ejecutar en puerto 5000
+- ✅ Configuración de deployment lista (Gunicorn con autoscale)
+
+### Credenciales de Administrador Iniciales
+⚠️ **IMPORTANTE - SEGURIDAD:**
+Por defecto, el sistema crea un usuario administrador con credenciales básicas:
+- **Usuario:** admin
+- **Contraseña:** admin123
+
+🔒 **ACCIÓN REQUERIDA:** Después de iniciar sesión por primera vez, debes cambiar esta contraseña inmediatamente por seguridad. Este es un riesgo de seguridad si se deja sin cambiar.
+
+### Siguiente Paso Recomendado
+1. Acceder al panel de administración: `/admin/login`
+2. Iniciar sesión con las credenciales por defecto
+3. Cambiar la contraseña del administrador inmediatamente
+4. Configurar las API keys opcionales para pagos y email si deseas usar esas funcionalidades:
+   - STRIPE_SECRET_KEY (para pagos con tarjeta)
+   - PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MODE (para PayPal)
+   - MAIL_USERNAME, MAIL_PASSWORD (para envío de emails)
 
 ## Nuevas Características Implementadas (v2.0.0)
 

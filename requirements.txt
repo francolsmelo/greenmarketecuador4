@@ -24,3 +24,7 @@ Werkzeug==3.0.3
 python-dotenv
 flask-mail
 paypalrestsdk
+flask-mail
+gunicorn
+paypalrestsdk
+python-dotenv
