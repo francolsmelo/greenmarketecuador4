@@ -101,7 +101,16 @@ def product_detail(product_id):
 @app.route('/cart/add/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     product = Product.query.get_or_404(product_id)
-    quantity = int(request.form.get('quantity', 1))
+    
+    try:
+        quantity = int(request.form.get('quantity', 1))
+    except (ValueError, TypeError):
+        flash('Cantidad inválida', 'error')
+        return redirect(url_for('product_detail', product_id=product_id))
+    
+    if quantity <= 0:
+        flash('La cantidad debe ser mayor a cero', 'error')
+        return redirect(url_for('product_detail', product_id=product_id))
     
     if product.stock < quantity:
         flash(f'Solo hay {product.stock} unidades disponibles', 'error')
@@ -151,25 +160,29 @@ def view_cart():
 
 @app.route('/cart/update/<int:product_id>', methods=['POST'])
 def update_cart(product_id):
-    quantity = int(request.form.get('quantity', 1))
     product = Product.query.get_or_404(product_id)
     
-    if quantity > product.stock:
-        flash(f'Solo hay {product.stock} unidades disponibles', 'error')
+    try:
+        quantity = int(request.form.get('quantity', 1))
+    except (ValueError, TypeError):
+        flash('Cantidad inválida', 'error')
         return redirect(url_for('view_cart'))
     
     cart = get_cart()
     product_id_str = str(product_id)
     
-    if quantity > 0:
-        if product_id_str in cart:
-            cart[product_id_str]['quantity'] = quantity
-    else:
+    if quantity <= 0:
         if product_id_str in cart:
             del cart[product_id_str]
+        flash('Producto eliminado del carrito', 'success')
+    elif quantity > product.stock:
+        flash(f'Solo hay {product.stock} unidades disponibles', 'error')
+    else:
+        if product_id_str in cart:
+            cart[product_id_str]['quantity'] = quantity
+        flash('Carrito actualizado', 'success')
     
     session['cart'] = cart
-    flash('Carrito actualizado', 'success')
     return redirect(url_for('view_cart'))
 
 @app.route('/cart/remove/<int:product_id>', methods=['POST'])
