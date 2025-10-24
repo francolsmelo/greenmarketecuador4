@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Registrarse - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="auth-page">
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <i class="fas fa-user-plus"></i>
+                    <h1>Crear Cuenta</h1>
+                    <p>Únete a GreenMarket Ecuador</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Correo Electrónico *</label>
+                        <input type="email" id="email" name="email" required placeholder="tu@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username"><i class="fas fa-user"></i> Nombre de Usuario *</label>
+                        <input type="text" id="username" name="username" required placeholder="usuario123">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="full_name"><i class="fas fa-id-card"></i> Nombre Completo</label>
+                        <input type="text" id="full_name" name="full_name" placeholder="Juan Pérez">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone"><i class="fas fa-phone"></i> Teléfono</label>
+                        <input type="tel" id="phone" name="phone" placeholder="0999999999">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-lock"></i> Contraseña *</label>
+                        <input type="password" id="password" name="password" required placeholder="Mínimo 6 caracteres">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password"><i class="fas fa-lock"></i> Confirmar Contraseña *</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Repite tu contraseña">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                        <i class="fas fa-user-plus"></i> Registrarse
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>¿Ya tienes una cuenta? <a href="{{ url_for('login') }}">Iniciar Sesión</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

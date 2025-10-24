@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+    <div class="container">
+        <h1><i class="fas fa-shopping-cart"></i> Finalizar Compra</h1>
+        
+        <div class="checkout-grid">
+            <div class="product-summary">
+                <h2>Resumen de Productos</h2>
+                {% for item in cart_items %}
+                <div class="product-card-checkout">
+                    {% if item.product.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + item.product.image_filename) }}" alt="{{ item.product.name }}">
+                    {% else %}
+                        <div class="no-image-checkout">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    {% endif %}
+                    <div class="product-info-checkout">
+                        <h3>{{ item.product.name }}</h3>
+                        <p>Cantidad: {{ item.quantity }}</p>
+                        <div class="price-checkout">${{ "%.2f"|format(item.price) }} x {{ item.quantity }} = ${{ "%.2f"|format(item.subtotal) }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="checkout-total">
+                    <h3>Total a Pagar:</h3>
+                    <div class="total-amount">${{ "%.2f"|format(total) }}</div>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <h2><i class="fas fa-credit-card"></i> Métodos de Pago</h2>
+                
+                {% if payment_methods %}
+                    {% for pm in payment_methods %}
+                        {% if 'Stripe' in pm.name %}
+                        <div class="payment-option">
+                            <h3><i class="fab fa-stripe"></i> {{ pm.name }}</h3>
+                            <p>Procesamiento seguro PCI-DSS compliant</p>
+                            <form action="{{ url_for('create_stripe_checkout') }}" method="POST">
+                                <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-lock"></i> Pagar con Tarjeta
+                                </button>
+                            </form>
+                        </div>
+                        <div class="payment-divider"><span>O</span></div>
+                        
+                        {% elif 'PayPal' in pm.name %}
+                        <div class="payment-option">
+                            <h3><i class="fab fa-paypal"></i> {{ pm.name }}</h3>
+                            <p>Pago seguro a través de PayPal</p>
+                            <form action="{{ url_for('create_paypal_order') }}" method="POST">
+                                <button type="submit" class="btn btn-paypal btn-block">
+                                    <i class="fab fa-paypal"></i> PayPal
+                                </button>
+                            </form>
+                        </div>
+                        <div class="payment-divider"><span>O</span></div>
+                        
+                        {% elif 'Contacto' in pm.name or 'Personal' in pm.name %}
+                        <div class="payment-option">
+                            <h3><i class="fas fa-phone-alt"></i> {{ pm.name }}</h3>
+                            <p>Coordina el pago directamente</p>
+                            <a href="{{ url_for('contact') }}" class="btn btn-secondary btn-block">
+                                <i class="fas fa-phone"></i> Contactar por Teléfono
+                            </a>
+                            <div class="contact-info-mini">
+                                <p><strong>Teléfonos:</strong></p>
+                                <p>0983043329 | 0998100865</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p>No hay métodos de pago disponibles. Por favor contacta al administrador.</p>
+                {% endif %}
+                
+                <div class="checkout-back">
+                    <a href="{{ url_for('view_cart') }}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-arrow-left"></i> Volver al Carrito
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

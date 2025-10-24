@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Pago Cancelado - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="payment-result">
+    <div class="container">
+        <div class="cancel-card">
+            <i class="fas fa-times-circle"></i>
+            <h1>Pago Cancelado</h1>
+            <p>Tu pago ha sido cancelado. No se ha realizado ningún cargo.</p>
+            <div class="result-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a la Tienda
+                </a>
+                <a href="{{ url_for('contact') }}" class="btn btn-primary">
+                    <i class="fas fa-phone"></i> Necesito Ayuda
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

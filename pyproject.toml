@@ -1,0 +1,19 @@
+[project]
+name = "greenmarket"
+version = "1.0.0"
+description = "E-commerce Flask app for GreenMarket Ecuador"
+requires-python = ">=3.11"
+
+dependencies = [
+    "flask>=3.1.2",
+    "flask-sqlalchemy>=3.1.1",
+    "flask-mail>=0.9.1",
+    "python-dotenv>=1.0.1",
+    "pillow>=12.0.0",
+    "psycopg2-binary>=2.9.11",
+    "sqlalchemy>=2.0.44",
+    "stripe>=13.0.1",
+    "paypalrestsdk>=1.13.1",
+    "werkzeug>=3.1.3",
+    "gunicorn>=23.0.0"
+]

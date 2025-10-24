@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="profile-page">
+    <div class="container">
+        <div class="profile-header">
+            <i class="fas fa-user-circle"></i>
+            <h1>Mi Perfil</h1>
+            <p>Gestiona tu información personal y tu historial de compras</p>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-section">
+                <div class="section-card">
+                    <h2><i class="fas fa-user-edit"></i> Información Personal</h2>
+                    <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
+                        <input type="hidden" name="action" value="update_info">
+                        
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username"><i class="fas fa-user"></i> Nombre de Usuario</label>
+                            <input type="text" id="username" name="username" value="{{ user.username }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="full_name"><i class="fas fa-id-card"></i> Nombre Completo</label>
+                            <input type="text" id="full_name" name="full_name" value="{{ user.full_name or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone"><i class="fas fa-phone"></i> Teléfono</label>
+                            <input type="tel" id="phone" name="phone" value="{{ user.phone or '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address"><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                            <textarea id="address" name="address" rows="3" placeholder="Calle, número, ciudad...">{{ user.address or '' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+
+                <div class="section-card">
+                    <h2><i class="fas fa-key"></i> Cambiar Contraseña</h2>
+                    <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
+                        <input type="hidden" name="action" value="change_password">
+                        
+                        <div class="form-group">
+                            <label for="current_password"><i class="fas fa-lock"></i> Contraseña Actual</label>
+                            <input type="password" id="current_password" name="current_password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new_password"><i class="fas fa-lock"></i> Nueva Contraseña</label>
+                            <input type="password" id="new_password" name="new_password" required placeholder="Mínimo 6 caracteres">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm_password"><i class="fas fa-lock"></i> Confirmar Nueva Contraseña</label>
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-secondary btn-large">
+                            <i class="fas fa-key"></i> Actualizar Contraseña
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="orders-section">
+                <div class="section-card">
+                    <h2><i class="fas fa-shopping-bag"></i> Historial de Pedidos</h2>
+                    
+                    {% if orders %}
+                        <div class="orders-list">
+                            {% for order in orders %}
+                                <div class="order-item">
+                                    <div class="order-header">
+                                        <span class="order-id">#{{ order.id }}</span>
+                                        <span class="order-date">{{ order.created_at.strftime('%d/%m/%Y') }}</span>
+                                    </div>
+                                    <div class="order-product">
+                                        <h4>{{ order.product.name }}</h4>
+                                        <p class="order-method">
+                                            <i class="fas fa-credit-card"></i> {{ order.payment_method }}
+                                        </p>
+                                    </div>
+                                    <div class="order-footer">
+                                        <span class="order-amount">${{ "%.2f"|format(order.amount) }}</span>
+                                        <span class="order-status status-{{ order.status }}">
+                                            {% if order.status == 'completed' %}
+                                                <i class="fas fa-check-circle"></i> Completado
+                                            {% elif order.status == 'pending' %}
+                                                <i class="fas fa-clock"></i> Pendiente
+                                            {% else %}
+                                                <i class="fas fa-info-circle"></i> {{ order.status }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-orders">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>Aún no tienes pedidos</p>
+                            <a href="{{ url_for('index') }}#productos" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart"></i> Ver Productos
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

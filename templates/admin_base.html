@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel Admin - GreenMarket Ecuador{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-body">
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <i class="fas fa-leaf"></i>
+                <h2>GreenMarket</h2>
+                <p>Panel Admin</p>
+            </div>
+            <nav class="admin-nav">
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin_add_product') }}" class="admin-nav-link {% if request.endpoint == 'admin_add_product' %}active{% endif %}">
+                    <i class="fas fa-plus"></i> Agregar Producto
+                </a>
+                <a href="{{ url_for('admin_customization') }}" class="admin-nav-link {% if request.endpoint == 'admin_customization' %}active{% endif %}">
+                    <i class="fas fa-palette"></i> Personalización
+                </a>
+                <a href="{{ url_for('admin_payments') }}" class="admin-nav-link {% if request.endpoint == 'admin_payments' %}active{% endif %}">
+                    <i class="fas fa-credit-card"></i> Métodos de Pago
+                </a>
+                <a href="{{ url_for('admin_change_password') }}" class="admin-nav-link {% if request.endpoint == 'admin_change_password' %}active{% endif %}">
+                    <i class="fas fa-key"></i> Cambiar Contraseña
+                </a>
+                <a href="{{ url_for('index') }}" class="admin-nav-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> Ver Sitio
+                </a>
+                <a href="{{ url_for('admin_logout') }}" class="admin-nav-link logout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <div class="admin-user">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ session.admin_username }}</span>
+                </div>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                                <button class="close-alert" onclick="this.parentElement.remove()">&times;</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <div class="admin-content">
+                {% block admin_content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

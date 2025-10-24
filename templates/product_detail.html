@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="product-detail">
+    <div class="container">
+        <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left"></i> Volver a la tienda</a>
+        
+        <div class="product-detail-grid">
+            <div class="product-image-container">
+                {% if product.image_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="product-no-image-large">
+                        <i class="fas fa-image"></i>
+                        <p>Sin imagen disponible</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="product-details">
+                <h1>{{ product.name }}</h1>
+                <div class="product-price-large">${{ "%.2f"|format(product.price) }}</div>
+                
+                <div class="product-stock-info">
+                    {% if product.stock > 0 %}
+                        <span class="stock-badge available"><i class="fas fa-check-circle"></i> Disponible</span>
+                        <span class="stock-count">{{ product.stock }} unidades en stock</span>
+                    {% else %}
+                        <span class="stock-badge unavailable"><i class="fas fa-times-circle"></i> Agotado</span>
+                    {% endif %}
+                </div>
+                
+                <div class="product-description-full">
+                    <h3>Descripción</h3>
+                    <p>{{ product.description }}</p>
+                </div>
+                
+                <div class="product-features">
+                    <h3>Características Ecológicas</h3>
+                    <ul>
+                        <li><i class="fas fa-leaf"></i> Producto ecológico certificado</li>
+                        <li><i class="fas fa-recycle"></i> Materiales reciclables</li>
+                        <li><i class="fas fa-seedling"></i> Bajo impacto ambiental</li>
+                    </ul>
+                </div>
+                
+                <div class="product-actions">
+                    {% if product.stock > 0 %}
+                        <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="add-to-cart-form">
+                            <div class="quantity-selector">
+                                <label for="quantity">Cantidad:</label>
+                                <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ product.stock }}" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                            </button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-secondary btn-large" disabled>
+                            <i class="fas fa-times-circle"></i> Agotado
+                        </button>
+                    {% endif %}
+                    <a href="{{ url_for('contact') }}" class="btn btn-secondary btn-large">
+                        <i class="fas fa-phone"></i> Consultar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Contacto - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="contact-page">
+    <div class="container">
+        <div class="contact-header">
+            <h1><i class="fas fa-phone-alt"></i> Contáctanos</h1>
+            <p>Estamos aquí para ayudarte. Responderemos tu consulta en máximo 1 hora.</p>
+        </div>
+
+        <div class="contact-grid">
+            <div class="contact-info-card">
+                <div class="contact-info-section">
+                    <i class="fas fa-phone"></i>
+                    <h3>Llámanos</h3>
+                    <p><a href="tel:0983043329">0983043329</a></p>
+                    <p><a href="tel:0998100865">0998100865</a></p>
+                </div>
+
+                <div class="contact-info-section">
+                    <i class="fas fa-envelope"></i>
+                    <h3>Escríbenos</h3>
+                    <p><a href="mailto:klinfra@yahoo.com">klinfra@yahoo.com</a></p>
+                    <small>Tiempo de respuesta: Máximo 1 hora</small>
+                </div>
+
+                <div class="contact-info-section">
+                    <i class="fas fa-user"></i>
+                    <h3>Información Personal</h3>
+                    <p><strong>Ing. Franklin Melo</strong></p>
+                    <p>Ambato - La Península</p>
+                </div>
+
+                <div class="contact-info-section">
+                    <i class="fas fa-clock"></i>
+                    <h3>Horario de Atención</h3>
+                    <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                    <p>Sábados: 9:00 AM - 2:00 PM</p>
+                </div>
+            </div>
+
+            <div class="contact-form-card">
+                <h2>Envíanos un Mensaje</h2>
+                <form class="contact-form" method="POST" action="{{ url_for('contact') }}">
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Nombre Completo</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone"><i class="fas fa-phone"></i> Teléfono</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject"><i class="fas fa-tag"></i> Asunto</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message"><i class="fas fa-comment"></i> Mensaje</label>
+                        <textarea id="message" name="message" rows="6" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-large">
+                        <i class="fas fa-paper-plane"></i> Enviar Mensaje
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

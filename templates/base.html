@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GreenMarket Ecuador{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-leaf"></i>
+                    <h1>GreenMarket Ecuador</h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="{{ url_for('index') }}">Inicio</a></li>
+                        <li><a href="{{ url_for('index') }}#productos">Productos</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contacto</a></li>
+                        <li><a href="{{ url_for('view_cart') }}" class="cart-link">
+                            <i class="fas fa-shopping-cart"></i> Carrito 
+                            {% if cart_count and cart_count > 0 %}
+                            <span class="cart-badge">{{ cart_count }}</span>
+                            {% endif %}
+                        </a></li>
+                    </ul>
+                </nav>
+                <div class="social-links">
+                    <a href="https://www.youtube.com" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.facebook.com" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="https://www.x.com" target="_blank" title="X (Twitter)"><i class="fab fa-x-twitter"></i></a>
+                    <a href="https://wa.me/593983043329" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        <button class="close-alert" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>GreenMarket Ecuador</h3>
+                    <p>Productos automotrices ecológicos para un futuro más verde y sostenible.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Navegación</h3>
+                    <div class="footer-links">
+                        <a href="{{ url_for('index') }}">Inicio</a>
+                        <a href="{{ url_for('index') }}#productos">Productos</a>
+                        <a href="{{ url_for('contact') }}">Contacto</a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Síguenos</h3>
+                    <div class="social-links-footer">
+                        <a href="https://www.youtube.com" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
+                        <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a href="https://www.x.com" target="_blank"><i class="fab fa-x-twitter"></i> X</a>
+                        <a href="https://wa.me/593983043329" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GreenMarket Ecuador. Todos los derechos reservados.</p>
+                <a href="{{ url_for('admin_login') }}" class="admin-access" title="Acceso Administrador">
+                    <i class="fas fa-cog"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

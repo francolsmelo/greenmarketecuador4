@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Carrito de Compras - GreenMarket Ecuador{% endblock %}
+
+{% block content %}
+<section class="cart-page">
+    <div class="container">
+        <h1><i class="fas fa-shopping-cart"></i> Carrito de Compras</h1>
+        
+        {% if cart_items %}
+            <div class="cart-content">
+                <div class="cart-items">
+                    {% for item in cart_items %}
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            {% if item.product.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' + item.product.image_filename) }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <div class="cart-no-image">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="cart-item-info">
+                            <h3>{{ item.product.name }}</h3>
+                            <p class="cart-item-price">${{ "%.2f"|format(item.price) }} c/u</p>
+                            <p class="cart-item-stock">Stock disponible: {{ item.product.stock }}</p>
+                        </div>
+                        <div class="cart-item-quantity">
+                            <form action="{{ url_for('update_cart', product_id=item.product_id) }}" method="POST" class="quantity-update-form">
+                                <label>Cantidad:</label>
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" onchange="this.form.submit()">
+                            </form>
+                        </div>
+                        <div class="cart-item-subtotal">
+                            <p class="subtotal-label">Subtotal:</p>
+                            <p class="subtotal-amount">${{ "%.2f"|format(item.subtotal) }}</p>
+                        </div>
+                        <div class="cart-item-remove">
+                            <form action="{{ url_for('remove_from_cart', product_id=item.product_id) }}" method="POST">
+                                <button type="submit" class="btn-remove" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="cart-summary">
+                    <h2>Resumen de Compra</h2>
+                    <div class="summary-line">
+                        <span>Subtotal:</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <div class="summary-line total">
+                        <span>Total:</span>
+                        <span>${{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <div class="cart-actions">
+                        <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-block btn-large">
+                            <i class="fas fa-credit-card"></i> Proceder al Pago
+                        </a>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary btn-block">
+                            <i class="fas fa-arrow-left"></i> Seguir Comprando
+                        </a>
+                        <form action="{{ url_for('clear_cart') }}" method="POST" style="margin-top: 10px;">
+                            <button type="submit" class="btn btn-danger btn-block" onclick="return confirm('¿Estás seguro de vaciar el carrito?')">
+                                <i class="fas fa-trash-alt"></i> Vaciar Carrito
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-cart">
+                <i class="fas fa-shopping-cart cart-empty-icon"></i>
+                <h2>Tu carrito está vacío</h2>
+                <p>Agrega productos para comenzar tu compra</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-large">
+                    <i class="fas fa-store"></i> Ir a la Tienda
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

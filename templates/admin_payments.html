@@ -1,0 +1,107 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Métodos de Pago - Panel Admin{% endblock %}
+
+{% block admin_content %}
+<div class="admin-header">
+    <h1><i class="fas fa-credit-card"></i> Gestión de Métodos de Pago</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="payments-info">
+    <p><i class="fas fa-info-circle"></i> Administra qué métodos de pago están disponibles para tus clientes y en qué orden aparecen en el checkout.</p>
+</div>
+
+<div class="payments-container">
+    <h2>Métodos de Pago Disponibles</h2>
+    
+    {% if payments %}
+        <form method="POST" action="{{ url_for('admin_payments') }}">
+            <input type="hidden" name="action" value="update_order">
+            
+            <div class="payment-methods-list">
+                {% for payment in payments %}
+                    <div class="payment-method-item {% if not payment.enabled %}disabled{% endif %}">
+                        <div class="payment-method-info">
+                            <div class="payment-icon">
+                                {% if payment.name == 'Stripe' %}
+                                    <i class="fab fa-cc-stripe"></i>
+                                {% elif payment.name == 'PayPal' %}
+                                    <i class="fab fa-paypal"></i>
+                                {% elif payment.name == 'Transferencia Bancaria' %}
+                                    <i class="fas fa-university"></i>
+                                {% else %}
+                                    <i class="fas fa-credit-card"></i>
+                                {% endif %}
+                            </div>
+                            <div class="payment-details">
+                                <h3>{{ payment.name }}</h3>
+                                <p class="payment-status">
+                                    {% if payment.enabled %}
+                                        <span class="badge badge-success"><i class="fas fa-check-circle"></i> Activo</span>
+                                    {% else %}
+                                        <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Inactivo</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-controls">
+                            <div class="order-control">
+                                <label for="order_{{ payment.id }}">Orden:</label>
+                                <input type="number" id="order_{{ payment.id }}" name="order_{{ payment.id }}" 
+                                       value="{{ payment.display_order }}" min="0" class="order-input">
+                            </div>
+                            
+                            <button type="button" class="btn btn-sm {% if payment.enabled %}btn-danger{% else %}btn-primary{% endif %}"
+                                    onclick="togglePaymentMethod({{ payment.id }})">
+                                {% if payment.enabled %}
+                                    <i class="fas fa-toggle-off"></i> Desactivar
+                                {% else %}
+                                    <i class="fas fa-toggle-on"></i> Activar
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-save"></i> Guardar Orden
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="no-payment-methods">
+            <i class="fas fa-credit-card"></i>
+            <p>No hay métodos de pago configurados</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function togglePaymentMethod(paymentId) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url_for("admin_payments") }}';
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'toggle';
+    
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.name = 'payment_id';
+    idInput.value = paymentId;
+    
+    form.appendChild(actionInput);
+    form.appendChild(idInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}
