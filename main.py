@@ -11,11 +11,10 @@ from PIL import Image
 import stripe
 import paypalrestsdk
 from flask_mail import Mail, Message
-from flask_sqlalchemy import SQLAlchemy
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-db = SQLAlchemy(app)
+
 if not os.environ.get("SESSION_SECRET"):
     raise ValueError("SESSION_SECRET environment variable must be set")
 
