@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: greenmarketecuador
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_oYIk4Dyl0bVC@ep-damp-poetry-ad513tlt-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: SESSION_SECRET
+        value: e3f1c8a2b7d4f9e6a1c3d5f7e8b9a0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7
+
+      # Stripe
+      - key: STRIPE_SECRET_KEY
+        value: rk_test_51SNd59Rt6IoQHFc1x9FAn1uRABySookWUKT7afHXdUf6JlOU2GwCTTI30TY82MFIZ7HkNOQKPIMwnXOtY3sRSOQL00UVA7YZfX
+
+      # PayPal
+      - key: PAYPAL_CLIENT_ID
+        value: ATztt_bAuzwI8RGObaA_wSL9377MkdGpyYib2-xR_4Do7DxmNIZT6TUMfuyVxliR-o3xyMj5yIgbVuaK
+      - key: PAYPAL_CLIENT_SECRET
+        value: EGv_6I31qLTDKDoWL8UR8HZ83hrYs97XzXVs9a75QxgAv9GhekaIUWwgmliBOIgciEHh5cZBqvdRIz_N
+      - key: PAYPAL_MODE
+        value: sandbox
+
+      # Email
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: MAIL_USERNAME
+        value: tu_correo@gmail.com
+      - key: MAIL_PASSWORD
+        value: tu_contraseña_de_aplicación
+      - key: MAIL_DEFAULT_SENDER
+        value: noreply@greenmarket.com
